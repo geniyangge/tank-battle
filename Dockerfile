@@ -15,8 +15,8 @@ RUN npm run build
 FROM nginx:1.27-alpine
 
 # 非 root 用户运行
-RUN addgroup -g 101 -S nginx-app && \
-    adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -G nginx-app -g nginx-app nginx-app
+RUN addgroup -g 1001 -S nginx-app && \
+    adduser -S -D -H -u 1001 -h /var/cache/nginx -s /sbin/nologin -G nginx-app -g nginx-app nginx-app
 
 # SPA 路由 fallback 配置
 COPY <<EOF /etc/nginx/conf.d/default.conf
@@ -33,7 +33,7 @@ server {
     location / {
         root   /usr/share/nginx/html;
         index  index.html;
-        try_files $uri $uri/ /index.html;
+        try_files $$uri $$uri/ /index.html;
     }
 
     # 静态资源长期缓存
