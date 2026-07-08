@@ -14,12 +14,11 @@ RUN npm run build
 # ========== Serve Stage ==========
 FROM nginx:1.27-alpine
 
-# 非 root 用户运行
-RUN addgroup -g 1001 -S nginx-app && \
-    adduser -S -D -H -u 1001 -h /var/cache/nginx -s /sbin/nologin -G nginx-app -g nginx-app nginx-app
+# 复制构建产物
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 # SPA 路由 fallback 配置
-COPY <<EOF /etc/nginx/conf.d/default.conf
+RUN cat <<'EOF' > /etc/nginx/conf.d/default.conf
 server {
     listen       80;
     listen  [::]:80;
@@ -45,14 +44,7 @@ server {
 }
 EOF
 
-# 复制构建产物
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# 调整权限
-RUN chown -R nginx-app:nginx-app /usr/share/nginx/html /var/cache/nginx /var/run
+# 确保 nginx 可读
+RUN chown -R nginx:nginx /usr/share/nginx/html
 
 EXPOSE 80
-
-USER nginx-app
-
-CMD ["nginx", "-g", "daemon off;"]
